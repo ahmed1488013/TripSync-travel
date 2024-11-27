@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TripSync - Travel Itinerary</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #FFFFFF;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      margin: auto;
+      padding: 20px;
+    }
+    .itinerary-section {
+      margin-bottom: 30px;
+      border-bottom: 2px solid #E0E0E0;
+      padding-bottom: 10px;
+    }
+    .itinerary-header {
+      color: #4169E1;
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    .date-highlight {
+      color: #FF7F50;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+    .details-button {
+      background-color: #4169E1;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.3s;
+    }
+    .details-button:hover {
+      background-color: #2D56A0;
+    }
+    .form-popup {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 400px;
+      padding: 20px;
+      background-color: #FFF;
+      border: 2px solid #4169E1;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+    }
+    .form-popup.active {
+      display: block;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .form-group input, .form-group textarea {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #CCC;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+    .form-group textarea {
+      resize: vertical;
+      height: 100px;
+    }
+    .form-footer {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+    }
+    .close-button, .submit-button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .close-button {
+      background-color: #E0E0E0;
+    }
+    .submit-button {
+      background-color: #4169E1;
+      color: white;
+    }
+    .submit-button:hover {
+      background-color: #2D56A0;
+    }
+    .added-details {
+      margin-top: 15px;
+      padding: 10px;
+      background-color: #F0F8FF;
+      border: 1px solid #4169E1;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- الرحلات -->
+    <div class="itinerary-section" id="flights-section">
+      <div class="itinerary-header">Flights</div>
+      <div class="date-highlight">Date: June 10, 2024</div>
+      <p>Flight Details: Flight number, departure and arrival times, airport information.</p>
+      <button class="details-button" onclick="showForm('Flight')">Add Flight Details</button>
+      <div class="added-details" id="flights-details"></div>
+    </div>
+
+    <!-- الإقامات -->
+    <div class="itinerary-section" id="accommodations-section">
+      <div class="itinerary-header">Accommodations</div>
+      <div class="date-highlight">Date: June 10-15, 2024</div>
+      <p>Hotel Details: Hotel name, address, check-in/check-out times, booking confirmation.</p>
+      <button class="details-button" onclick="showForm('Accommodation')">Add Accommodation Details</button>
+      <div class="added-details" id="accommodations-details"></div>
+    </div>
+
+    <!-- الأنشطة -->
+    <div class="itinerary-section" id="activities-section">
+      <div class="itinerary-header">Activities</div>
+      <div class="date-highlight">Date: June 11, 2024</div>
+      <p>Planned Activities: City tour, museum visits, etc.</p>
+      <button class="details-button" onclick="showForm('Activity')">Add Activity Details</button>
+      <div class="added-details" id="activities-details"></div>
+    </div>
+  </div>
+
+  <!-- نموذج إدخال التفاصيل -->
+  <div class="form-popup" id="details-form">
+    <h3>Add Details</h3>
+    <div class="form-group">
+      <label for="detail-title">Title</label>
+      <input type="text" id="detail-title" placeholder="Enter title">
+    </div>
+    <div class="form-group">
+      <label for="detail-description">Description</label>
+      <textarea id="detail-description" placeholder="Enter details"></textarea>
+    </div>
+    <div class="form-footer">
+      <button class="close-button" onclick="closeForm()">Close</button>
+      <button class="submit-button" onclick="submitDetails()">Submit</button>
+    </div>
+  </div>
+
+  <script>
+    let currentSection = '';
+
+    function showForm(section) {
+      currentSection = section;
+      document.getElementById('details-form').classList.add('active');
+    }
+
+    function closeForm() {
+      document.getElementById('details-form').classList.remove('active');
+      document.getElementById('detail-title').value = '';
+      document.getElementById('detail-description').value = '';
+    }
+
+    function submitDetails() {
+      const title = document.getElementById('detail-title').value;
+      const description = document.getElementById('detail-description').value;
+
+      if (title && description) {
+        const sectionId = `${currentSection.toLowerCase()}-details`;
+        const detailsDiv = document.getElementById(sectionId);
+        detailsDiv.innerHTML = `<strong>${title}</strong><p>${description}</p>`;
+
+        // Save details to Local Storage
+        const savedDetails = JSON.parse(localStorage.getItem(currentSection)) || [];
+        savedDetails.push({ title, description });
+        localStorage.setItem(currentSection, JSON.stringify(savedDetails));
+
+        // Display updated details
+        displaySavedDetails(currentSection, sectionId);
+
+        // Close the form and reset fields
+        closeForm();
+      } else {
+        alert('Please fill in both the title and description.');
+      }
+    }
+
+    function displaySavedDetails(section, divId) {
+      const savedDetails = JSON.parse(localStorage.getItem(section)) || [];
+      const detailsDiv = document.getElementById(divId);
+      detailsDiv.innerHTML = ''; // Clear existing content
+      savedDetails.forEach(detail => {
+        detailsDiv.innerHTML += `<strong>${detail.title}</strong><p>${detail.description}</p><hr>`;
+      });
+    }
+
+    // Load and display existing details on page load
+    window.onload = function() {
+      displaySavedDetails('Flight', 'flights-details');
+      displaySavedDetails('Accommodation', 'accommodations-details');
+      displaySavedDetails('Activity', 'activities-details');
+    };
+  </script>
+</body>
+</html>
